@@ -44,7 +44,6 @@ const createBumpyParams = (x, y) => ([
 
 
 export default class MenuItem extends Component {
-
   static propTypes = {
     x: PropTypes.number.isRequired,
     y: PropTypes.number.isRequired,
@@ -95,7 +94,9 @@ export default class MenuItem extends Component {
   }
 
   render() {
-    const { x, y, reverse, type } = this.props;
+    const {
+      x, y, reverse, type,
+    } = this.props;
     let newX;
     let newY;
     if (reverse) {
@@ -122,7 +123,7 @@ export default class MenuItem extends Component {
             },
           )
         )
-      }
+        }
       </Motion>
     );
   }

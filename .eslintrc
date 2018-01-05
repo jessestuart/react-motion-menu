@@ -2,6 +2,9 @@
   "extends": "airbnb",
   "parser": "babel-eslint",
   "rules": {
+    "indent": ["error", 2],
+    "no-mixed-operators": 0,
+    "quotes": ["error", "single"],
     "react/jsx-filename-extension": [0, { "extensions": [".js", ".jsx"] }],
     "react/prop-types": [0]
   }

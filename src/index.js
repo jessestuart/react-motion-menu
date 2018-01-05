@@ -4,37 +4,38 @@ import MenuItem from './item';
 import MenuButton from './button';
 
 export default class MotionMenu extends Component {
-
   static propTypes = {
+    bumpy: PropTypes.bool,
+    className: PropTypes.string,
     margin: PropTypes.number.isRequired,
+    onClose: PropTypes.func,
+    onOpen: PropTypes.func,
+    openSpeed: PropTypes.number,
+    reverse: PropTypes.bool,
+    style: PropTypes.Object,
     type: PropTypes.oneOf(['horizontal', 'vertical', 'circle']).isRequired,
     wing: PropTypes.bool,
     x: PropTypes.number,
     y: PropTypes.number,
-    onClose: PropTypes.func,
-    onOpen: PropTypes.func,
-    className: PropTypes.string,
-    bumpy: PropTypes.bool,
-    openSpeed: PropTypes.number,
-    reverse: PropTypes.bool,
-  }
+  };
 
   static defaultProps = {
-    x: 0,
-    y: 0,
-    style: {},
+    bumpy: true,
     onClose: () => {},
     onOpen: () => {},
-    bumpy: true,
     openSpeed: 60,
     reverse: false,
-  }
+    style: {},
+    x: 0,
+    y: 0,
+    className: '',
+    wing: false,
+  };
 
   constructor(props) {
     super(props);
     this.state = {
       itemNumber: 1,
-      status: 'idle',
     };
     this.items = [];
     this.onOpenEnd = this.onOpenEnd.bind(this);
@@ -42,17 +43,11 @@ export default class MotionMenu extends Component {
     this.onClick = this.onClick.bind(this);
   }
 
-  onOpenEnd(name) {
-    if (this.state.action !== 'open') return;
-    if (this.state.itemNumber < this.props.children.length) {
-      this.items[this.state.itemNumber].start();
-      this.setState({
-        itemNumber: this.state.itemNumber + 1,
-      });
-      return;
-    }
-    if (name === `item${this.props.children.length - 1}`) {
-      this.props.onOpen();
+  onClick() {
+    if (this.state.action === 'open') {
+      this.closeItems();
+    } else {
+      this.openItem();
     }
   }
 
@@ -71,18 +66,34 @@ export default class MotionMenu extends Component {
     }
   }
 
-  onClick() {
-    if (this.state.action === 'open') {
-      this.closeItems();
-    } else {
-      this.openItem();
+  onOpenEnd(name) {
+    if (this.state.action !== 'open') return;
+    if (this.state.itemNumber < this.props.children.length) {
+      this.items[this.state.itemNumber].start();
+      this.setState({
+        itemNumber: this.state.itemNumber + 1,
+      });
+      return;
+    }
+    if (name === `item${this.props.children.length - 1}`) {
+      this.props.onOpen();
     }
   }
 
-  getDistance(i) {
-    return this.props.wing
-      ? (parseInt(i / 2, 10) + 1) * this.props.margin * ((i % 2) || -1)
-      : this.props.margin * (i + 1);
+  get menuButton() {
+    return (
+      <MenuButton
+        ref={(c) => {
+          this.button = c;
+        }}
+        onClick={this.onClick}
+        x={this.props.x}
+        y={this.props.y}
+        bumpy={this.props.bumpy}
+      >
+        {this.props.children[0]}
+      </MenuButton>
+    );
   }
 
   getX(i, x) {
@@ -91,7 +102,8 @@ export default class MotionMenu extends Component {
       return this.getDistance(i) + x;
     }
     if (type === 'circle') {
-      return x + (margin * Math.cos((Math.PI * 2 * i) / (children.length - 1)));
+      // eslint disable-next-line
+      return x + margin * Math.cos(Math.PI * 2 * i / (children.length - 1));
     }
     return x;
   }
@@ -102,7 +114,7 @@ export default class MotionMenu extends Component {
       return this.getDistance(i) + y;
     }
     if (type === 'circle') {
-      return y + (margin * Math.sin((Math.PI * 2 * i) / (children.length - 1)));
+      return y + margin * Math.sin(Math.PI * 2 * i / (children.length - 1));
     }
     return y;
   }
@@ -114,7 +126,9 @@ export default class MotionMenu extends Component {
       .map(i => (
         <MenuItem
           key={i}
-          ref={(c) => { this.items[i + 1] = c; }}
+          ref={(c) => {
+            this.items[i + 1] = c;
+          }}
           name={`item${i + 1}`}
           onOpenAnimationEnd={this.onOpenEnd}
           onCloseAnimationEnd={this.onCloseEnd}
@@ -127,22 +141,12 @@ export default class MotionMenu extends Component {
         >
           {this.props.children[i + 1]}
         </MenuItem>
-      ),
-    );
+      ));
   }
-
-  get menuButton() {
-    return (
-      <MenuButton
-        ref={(c) => { this.button = c; }}
-        onClick={this.onClick}
-        x={this.props.x}
-        y={this.props.y}
-        bumpy={this.props.bumpy}
-      >
-        {this.props.children[0]}
-      </MenuButton>
-    );
+  getDistance(i) {
+    return this.props.wing
+      ? (parseInt(i / 2, 10) + 1) * this.props.margin * (i % 2 || -1)
+      : this.props.margin * (i + 1);
   }
 
   closeItems() {
@@ -171,10 +175,7 @@ export default class MotionMenu extends Component {
 
   render() {
     return (
-      <div
-        style={this.props.style}
-        className={this.props.className}
-      >
+      <div style={this.props.style} className={this.props.className}>
         <div style={{ position: 'relative' }}>
           {this.menuButton}
           {this.getItems()}
